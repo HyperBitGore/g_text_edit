@@ -182,16 +182,22 @@ int main() {
 		size_t curline = 2;
 		size_t cx = 0;
 		size_t t = 0;
+		size_t tx = 0;
+		//we get 30 characters vertically and two are taken up by GUI
 		if (line > 27) {
 			t = line - 27;
 		}
+		//we get 120 characters horizontally
+		if (x > 119) {
+			tx = x - 119;
+		}
 		for (size_t i = t; i < bu.curfile->data.size(); i++) {
 			cx = 0;
-			for (auto& j : bu.curfile->data[i]) {
-				if (curline - 2 == line - t && cx == x) {
+			for (size_t j = tx; j < bu.curfile->data[i].size(); j++) {
+				if (curline - 2 == line - t && cx == x - tx) {
 					attron(COLOR_PAIR(2));
-					if (j != '\n') {
-						mvaddch(curline, cx, j);
+					if (bu.curfile->data[i][j] != '\n') {
+						mvaddch(curline, cx, bu.curfile->data[i][j]);
 					}
 					else {
 						mvaddch(curline, cx, ' ');
@@ -200,7 +206,7 @@ int main() {
 				}
 				else {
 					attron(COLOR_PAIR(1));
-					mvaddch(curline, cx, j);
+					mvaddch(curline, cx, bu.curfile->data[i][j]);
 					attroff(COLOR_PAIR(1));
 				}
 				cx++;
