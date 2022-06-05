@@ -11,6 +11,7 @@ public:
 	std::vector<std::string> data;
 	std::string name;
 	size_t size;
+	bool changes = false;
 	File() {
 		name = "EMPTY";
 		size = 0;
@@ -32,11 +33,26 @@ public:
 	}
 };
 
-
 bool getFile(File* f1) {
+	timeout(-1);
 	std::string fp;
-	std::cout << "Input file path \n";
-	std::cin >> fp;
+	char in = 1;
+	int n = 0;
+	while (in != '\n') {
+		if (in == 8) {
+			fp.erase(fp.begin() + n);
+			n--;
+		}else if (in >= 32) {
+			fp.push_back(in);
+			n++;
+		}
+		clear();
+		printw("Input File Path\n");
+		printw(fp.c_str());
+		refresh();
+		in = getch();
+	}
+	timeout(0);
 	std::fstream file;
 	file.open(fp);
 	if (file) {
@@ -48,9 +64,10 @@ bool getFile(File* f1) {
 		}
 		File f(fp, temp);
 		*f1 = f;
+		file.close();
 		return true;
 	}
-	std::cout << "Not a valid file path\n";
+	file.close();
 	return false;
 }
 
@@ -66,3 +83,43 @@ bool saveFile(File* f) {
 	}
 	return false;
 }
+
+
+
+class FileBundle {
+private:
+	std::vector<File*> files;
+	size_t index = 0;
+public:
+	File* curfile;
+	FileBundle() {
+		addFile();
+		curfile = files[0];
+	}
+	void addFile() {
+		File* f = new File;
+		getFile(f);
+		files.push_back(f);
+	}
+	void moveForward() {
+		index++;
+		if (index < files.size()) {
+			curfile = files[index];
+		}
+		else {
+			curfile = files[0];
+			index = 0;
+		}
+	}
+	std::vector<File*>& getFiles() {
+		return files;
+	}
+	~FileBundle() {
+		for (auto& i : files) {
+			saveFile(i);
+			i->~File();
+			delete i;
+		}
+		files.clear();
+	}
+};
